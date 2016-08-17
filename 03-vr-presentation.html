@@ -124,6 +124,12 @@ found in the LICENSE file.
       }
 
       function onVRExitPresent () {
+        // No sense in exiting presentation if we're not actually presenting.
+        // (This may happen if we get an event like vrdisplaydeactivate when
+        // we weren't presenting.)
+        if (!vrDisplay.isPresenting)
+          return;
+
         vrDisplay.exitPresent().then(function () {
           // Nothing to do because we're handling things in onVRPresentChange.
         }, function () {
@@ -176,6 +182,15 @@ found in the LICENSE file.
             // ensure we always know when we begin/end presenting we need to
             // listen for vrdisplaypresentchange events.
             window.addEventListener('vrdisplaypresentchange', onVRPresentChange, false);
+
+            // These events fire when the user agent has had some indication that
+            // it would be appropariate to enter or exit VR presentation mode, such
+            // as the user putting on a headset and triggering a proximity sensor.
+            // You can inspect the `reason` property of the event to learn why the
+            // event was fired, but in this case we're going to always trust the
+            // event and enter or exit VR presentation mode when asked.
+            window.addEventListener('vrdisplayactivate', onVRRequestPresent, false);
+            window.addEventListener('vrdisplaydeactivate', onVRExitPresent, false);
           } else {
             VRSamplesUtil.addInfo("WebVR supported, but no VRDisplays found.", 3000);
           }
